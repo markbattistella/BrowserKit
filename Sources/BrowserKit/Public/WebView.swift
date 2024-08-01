@@ -45,7 +45,7 @@ public struct WebView {
 }
 
 // MARK: - Initialisers
-public extension WebView {
+extension WebView {
 
     /// Initializes a `WebView` with a URL, defaulting to using `SFSafariViewController` on 
     /// supported platforms.
@@ -173,7 +173,7 @@ public extension WebView {
 }
 
 // MARK: - Body view
-public extension WebView: View {
+extension WebView: View {
 
     /// A view that presents a web view based on the type of `WebView`.
     ///
