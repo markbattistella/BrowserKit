@@ -9,41 +9,52 @@
 import SwiftUI
 import SafariServices
 
-/// A SwiftUI view that wraps `SFSafariViewController` for presenting web content.
+/// A SwiftUI wrapper for `SFSafariViewController`, providing a way to present web content
+/// using Safari on iOS, visionOS, and Catalyst platforms.
 ///
-/// This struct allows you to present a web view using `SFSafariViewController` in iOS, visionOS,
-/// or Catalyst applications. It provides a way to configure the `SFSafariViewController` and
-/// its view using closures for customized settings.
+/// This view allows you to load and present web content in a secure and isolated
+/// `SFSafariViewController`, and it supports custom configurations both for the Safari view
+/// controller and its view.
+///
+/// - Parameters:
+///   - url: The URL to load and display in the Safari view.
+///   - configureSafari: A closure that allows custom configuration of the
+///   `SFSafariViewController.Configuration`.
+///   - configureSafariView: A closure for configuring the `SFSafariViewController` after it has
+///   been initialized.
 internal struct SafariWebView: UIViewControllerRepresentable {
-
-    /// The URL to load in the `SFSafariViewController`.
+    
+    /// The URL to load in the Safari web view.
     internal let url: URL
-
-    /// A closure to configure the `SFSafariViewController.Configuration` before creating the
-    /// view controller.
-    internal let configurationClosure: ((inout SFSafariViewController.Configuration) -> Void)?
-
-    /// A closure to configure the `SFSafariViewController` after it has been created.
-    internal let viewConfiguration: ((SFSafariViewController) -> Void)?
-
-    /// Creates and returns an `SFSafariViewController` with the specified configuration.
+    
+    /// A closure for configuring the Safari view controller's configuration before it's presented.
+    /// This allows customization of features such as reader mode, bar tint, and more.
+    internal let configureSafari: ((inout SFSafariViewController.Configuration) -> Void)?
+    
+    /// A closure for further configuring the `SFSafariViewController` after creation, such as
+    /// setting specific view properties or handling delegate methods.
+    internal let configureSafariView: ((SFSafariViewController) -> Void)?
+    
+    /// Creates the `SFSafariViewController` and configures it with the provided URL and settings.
     ///
     /// - Parameter context: The context in which the view controller is created.
-    /// - Returns: An `SFSafariViewController` configured with the provided URL and settings.
+    /// - Returns: A fully configured `SFSafariViewController` ready to present.
     internal func makeUIViewController(context: Context) -> SFSafariViewController {
         var configuration = SFSafariViewController.Configuration()
-        configurationClosure?(&configuration)
+        configureSafari?(&configuration)
         let controller = SFSafariViewController(url: url, configuration: configuration)
-        viewConfiguration?(controller)
+        configureSafariView?(controller)
         return controller
     }
-
-    /// Updates the `SFSafariViewController` with the current configuration.
+    
+    /// Updates the Safari view controller when the SwiftUI view's state changes.
     ///
-    /// This method is called whenever the SwiftUI view's state changes, allowing you to update
-    /// the view controller if needed.
+    /// This method is called whenever the parent view updates its state, allowing for dynamic
+    /// updates to the Safari view. However, this particular implementation does not perform any
+    /// updates as the Safari view's state remains static.
+    ///
     /// - Parameters:
-    ///   - uiViewController: The `SFSafariViewController` to update.
+    ///   - uiViewController: The Safari view controller to update.
     ///   - context: The context in which the update occurs.
     internal func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }

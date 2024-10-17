@@ -6,27 +6,22 @@
 
 import Foundation
 
-/// Enum representing different types of web views based on platform-specific availability.
+/// An enumeration that defines the types of web views available for displaying web content.
 ///
-/// This enum is used to differentiate between various configurations or implementations
-/// of web views depending on the operating system or platform in use.
+/// This enum provides two options:
+/// - `safari`: A web view powered by `SFSafariViewController` (available only on iOS, visionOS,
+/// and Catalyst).
+/// - `webkit`: A web view powered by `WKWebView`, available on all platforms.
 internal enum WebViewType {
 
-    #if os(iOS) || os(visionOS) || os(watchOS) || targetEnvironment(macCatalyst)
+    #if !os(macOS)
 
-    /// Represents a simple web view configuration.
-    ///
-    /// This case is available for iOS, visionOS, watchOS, and Catalyst environments.
-    case simple
-
-    #endif
-
-    #if os(iOS) || os(macOS) || os(visionOS) || targetEnvironment(macCatalyst)
-
-    /// Represents an advanced web view configuration.
-    ///
-    /// This case is available for iOS, macOS, visionOS, and Catalyst environments.
-    case advanced
+    /// A web view that uses `SFSafariViewController` to display web content. This is available
+    /// only on iOS, visionOS, and Catalyst environments.
+    case safari
 
     #endif
+
+    /// A web view that uses `WKWebView` to display web content. This is available on all platforms.
+    case webkit
 }

@@ -9,96 +9,107 @@
 import SwiftUI
 import WebKit
 
-/// A SwiftUI view that wraps a `WKWebView` for displaying web content.
+/// A SwiftUI wrapper for `WKWebView`, providing a way to display web content using WebKit on iOS,
+/// macOS, visionOS, and Catalyst platforms. This view supports loading content from a URL or an
+/// HTML string and allows for configuration of both the WebKit configuration and the `WKWebView`
+/// itself.
 ///
-/// This struct provides a way to present a web view using `WKWebView` in iOS, macOS, visionOS,
-/// or Catalyst applications. It supports loading web pages from URLs or HTML strings and allows
-/// for customization of the `WKWebView` through configuration and view setup closures.
+/// - Parameters:
+///   - url: The URL to load and display in the web view.
+///   - htmlString: An optional HTML string to load into the web view.
+///   - htmlBaseUrl: The base URL used to resolve relative paths in the HTML string.
+///   - configureWebKit: A closure to configure the `WKWebViewConfiguration` before the web view
+///   is created.
+///   - configureWebView: A closure to configure the `WKWebView` after creation.
 internal struct WebKitWebView: AgnosticViewRepresentable {
 
-    /// The URL to load in the `WKWebView`.
+    /// The URL to load in the web view, if available. If `nil`, the `htmlString` will be
+    /// loaded instead.
     internal let url: URL?
 
-    /// The HTML string to load in the `WKWebView`.
+    /// The HTML string to load into the web view, if available. If `nil`, the `url` will be
+    /// loaded instead.
     internal let htmlString: String?
 
-    /// The base URL for resolving relative URLs in the HTML string.
+    /// The base URL for resolving relative paths within the loaded HTML content, if provided.
     internal let htmlBaseUrl: URL?
 
-    /// A closure to configure the `WKWebViewConfiguration` before creating the web view.
-    internal let configurationClosure: ((inout WKWebViewConfiguration) -> Void)?
+    /// A closure for configuring the WebKit view's `WKWebViewConfiguration` before the web view
+    /// is created.
+    internal let configureWebKit: ((inout WKWebViewConfiguration) -> Void)?
 
-    /// A closure to configure the `WKWebView` after it has been created.
-    internal let viewConfiguration: ((WKWebView) -> Void)?
+    /// A closure for configuring the `WKWebView` after its creation. This can be used for
+    /// additional setup.
+    internal let configureWebView: ((WKWebView) -> Void)?
 
-    #if os(macOS)
+#if os(macOS)
 
-    /// Creates and returns a `WKWebView` for macOS.
+    /// Creates the WebKit-based view for macOS (`NSView`).
     ///
     /// - Parameter context: The context in which the view is created.
-    /// - Returns: A configured `WKWebView` instance.
-    internal func makeNSView(context: Context) -> WKWebView { makeView() }
+    /// - Returns: A fully configured `WKWebView` ready to present content.
+    internal func makeNSView(context: Context) -> WKWebView {
+        makeWebView()
+    }
 
-    /// Updates the `WKWebView` for macOS.
+    /// Updates the WebKit view on macOS when the SwiftUI view's state changes.
+    ///
+    /// This function allows for updates to the macOS WebKit view when the SwiftUI view is updated.
+    /// In this implementation, no updates are required after the view is initially created.
     ///
     /// - Parameters:
-    ///   - nsView: The `WKWebView` to update.
+    ///   - nsView: The WebKit view (`WKWebView`) to update.
     ///   - context: The context in which the update occurs.
     internal func updateNSView(_ nsView: WKWebView, context: Context) {}
 
-    #else
+#else
 
-    /// Creates and returns a `WKWebView` for iOS, visionOS, or Catalyst.
+    /// Creates the WebKit-based view for iOS, visionOS, or Catalyst (`UIView`).
     ///
     /// - Parameter context: The context in which the view is created.
-    /// - Returns: A configured `WKWebView` instance.
-    internal func makeUIView(context: Context) -> WKWebView { makeView() }
+    /// - Returns: A fully configured `WKWebView` ready to present content.
+    internal func makeUIView(context: Context) -> WKWebView {
+        makeWebView()
+    }
 
-    /// Updates the `WKWebView` for iOS, visionOS, or Catalyst.
+    /// Updates the WebKit view on iOS, visionOS, or Catalyst when the SwiftUI view's state changes.
+    ///
+    /// This function allows for updates to the iOS, visionOS, or Catalyst WebKit view when the
+    /// SwiftUI view is updated. In this implementation, no updates are required after the view is
+    /// initially created.
     ///
     /// - Parameters:
-    ///   - uiView: The `WKWebView` to update.
+    ///   - uiView: The WebKit view (`WKWebView`) to update.
     ///   - context: The context in which the update occurs.
     internal func updateUIView(_ uiView: WKWebView, context: Context) {}
 
-    #endif
-}
+#endif
 
-@MainActor
-fileprivate extension WebKitWebView {
-
-    /// Creates and configures a `WKWebView` instance.
+    /// Creates a `WKWebView` instance, applies configurations, and loads content from a URL or
+    /// HTML string.
     ///
-    /// - Returns: A `WKWebView` instance with the applied configuration.
+    /// - Returns: A fully configured `WKWebView` instance.
     private func makeWebView() -> WKWebView {
         var configuration = WKWebViewConfiguration()
-        configurationClosure?(&configuration)
-        return WKWebView(frame: .zero, configuration: configuration)
+        configureWebKit?(&configuration)
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        configureWebView?(webView)
+        loadContent(into: webView)
+        return webView
     }
 
-    /// Creates a `WKWebView`, applies view configuration, and loads content.
+    /// Loads the content into the provided `WKWebView`, either from a URL or an HTML string.
     ///
-    /// - Returns: A configured `WKWebView` instance.
-    private func makeView() -> WKWebView {
-        let view = makeWebView()
-        viewConfiguration?(view)
-        tryLoadUrl(into: view)
-        tryLoadHtml(into: view)
-        return view
-    }
-
-    /// Loads the URL into the `WKWebView` if a URL is provided.
+    /// If a URL is available, it loads the web page. If an HTML string is provided, it loads the
+    /// HTML content.
     ///
-    /// - Parameter view: The `WKWebView` instance to load the URL into.
-    private func tryLoadUrl(into view: WKWebView) {
-        if let url = url { view.load(URLRequest(url: url)) }
-    }
-
-    /// Loads the HTML string into the `WKWebView` if an HTML string is provided.
-    ///
-    /// - Parameter view: The `WKWebView` instance to load the HTML string into.
-    private func tryLoadHtml(into view: WKWebView) {
-        if let htmlString = htmlString { view.loadHTMLString(htmlString, baseURL: htmlBaseUrl) }
+    /// - Parameter webView: The `WKWebView` instance to load content into.
+    private func loadContent(into webView: WKWebView) {
+        if let url = url {
+            webView.load(URLRequest(url: url))
+        } else if let htmlString = htmlString {
+            webView.loadHTMLString(htmlString, baseURL: htmlBaseUrl)
+        }
     }
 }
 

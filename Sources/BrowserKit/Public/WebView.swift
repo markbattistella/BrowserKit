@@ -10,204 +10,179 @@ import SwiftUI
 import SafariServices
 import WebKit
 
-// MARK: - Setup
+/// A SwiftUI view that displays web content using either `SFSafariViewController` or `WKWebView`,
+/// depending on the platform and configuration.
+///
+/// - On iOS, visionOS, and Catalyst, this view can present a Safari-based web view using
+/// `SFSafariViewController`.
+/// - On all platforms, it can also present a `WKWebView` for more customizable web viewing.
+///
+/// You can configure the web view to load either a URL or an HTML string.
 public struct WebView {
 
-    /// The URL to load in the web view.
+    /// The URL to be loaded in the web view.
     private let url: URL?
 
-    /// The type of web view to use (`SFSafariViewController` or `WKWebView`).
-    private let type: WebViewType
+    /// The type of web view to be presented, either Safari or WebKit.
+    private let webViewType: WebViewType
 
-    #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
+    /// A closure used to configure the Safari view controller's configuration.
+    private let configureSafari: ((inout SFSafariViewController.Configuration) -> Void)?
 
-    /// A closure to configure the `SFSafariViewController.Configuration` when using
-    /// `SFSafariViewController`.
-    private let sfConfigurationClosure: ((inout SFSafariViewController.Configuration) -> Void)?
+    /// A closure used to configure the `SFSafariViewController` instance directly.
+    private let configureSafariView: ((SFSafariViewController) -> Void)?
 
-    /// A closure to configure the `SFSafariViewController` instance when using
-    /// `SFSafariViewController`.
-    private let sfViewConfiguration: ((SFSafariViewController) -> Void)?
+    /// A closure used to configure the `WKWebViewConfiguration` object.
+    private let configureWebKit: ((inout WKWebViewConfiguration) -> Void)?
 
-    #endif
+    /// A closure used to configure the `WKWebView` instance directly.
+    private let configureWebView: ((WKWebView) -> Void)?
 
-    /// A closure to configure the `WKWebViewConfiguration` when using `WKWebView`.
-    private let wkConfigurationClosure: ((inout WKWebViewConfiguration) -> Void)?
-
-    /// A closure to configure the `WKWebView` instance when using `WKWebView`.
-    private let wkViewConfiguration: ((WKWebView) -> Void)?
-
-    /// The HTML content to load in the web view when using `WKWebView`.
+    /// An optional HTML string to be loaded in the `WKWebView`.
     private let htmlString: String?
 
-    /// The base URL for resolving relative paths in the HTML string when using `WKWebView`.
+    /// The base URL to be used for loading relative resources in the HTML string.
     private let htmlBaseUrl: URL?
-}
 
-// MARK: - Initialisers
-extension WebView {
-
-    /// Initializes a `WebView` with a URL, defaulting to using `SFSafariViewController` on 
-    /// supported platforms.
+    /// Initializes a `WebView` with a URL to be loaded.
     ///
     /// - Parameter url: The URL to load in the web view.
-    ///
-    /// - Warning: On iOS, the webpage is presented using `SFSafariViewController`. However, on
-    /// visionOS and Catalyst, the URL will open in the Safari browser app directly, rather than
-    /// in-app. This is a platform-specific behavior intended to provide a consistent user
-    /// experience across different Apple environments.
     public init(url: URL) {
 
         #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
-        self.init(url: url, sfConfiguration: nil, sfViewConfiguration: nil)
+        self.init(url: url, safariConfiguration: nil, safariViewConfiguration: nil)
+
         #elseif os(macOS)
-        self.init(url: url, wkConfiguration: nil, wkViewConfiguration: nil)
+
+        self.init(url: url, webKitConfiguration: nil, webViewConfiguration: nil)
+
         #endif
     }
 
-    /// Initializes a `WebView` with a URL, using `SFSafariViewController` and optional
-    /// configurations.
+    #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
+
+    /// Initializes a `WebView` with a URL and optional Safari view configurations.
     ///
     /// - Parameters:
-    ///   - url: The URL to load in the web view.
-    ///   - sfConfiguration: A closure to configure the `SFSafariViewController.Configuration`.
-    ///   - sfViewConfiguration: A closure to configure the `SFSafariViewController`.
-    ///
-    /// - Warning: On iOS, the webpage is presented using `SFSafariViewController`. However, on
-    /// visionOS and Catalyst, the URL will open in the Safari browser app directly, rather than
-    /// in-app. This is a platform-specific behavior intended to provide a consistent user
-    /// experience across different Apple environments.
-    #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
+    ///   - url: The URL to load in the Safari view.
+    ///   - safariConfiguration: An optional closure to configure the `SFSafariViewController.Configuration`.
+    ///   - safariViewConfiguration: An optional closure to configure the `SFSafariViewController`.
     public init(
         url: URL,
-        sfConfiguration: ((inout SFSafariViewController.Configuration) -> Void)? = nil,
-        sfViewConfiguration: ((SFSafariViewController) -> Void)? = nil
+        safariConfiguration: ((inout SFSafariViewController.Configuration) -> Void)? = nil,
+        safariViewConfiguration: ((SFSafariViewController) -> Void)? = nil
     ) {
         self.url = url
         self.htmlString = nil
         self.htmlBaseUrl = nil
-        self.type = .simple
-        self.sfConfigurationClosure = sfConfiguration
-        self.sfViewConfiguration = sfViewConfiguration
-        self.wkConfigurationClosure = nil
-        self.wkViewConfiguration = nil
+        self.webViewType = .safari
+        self.configureSafari = safariConfiguration
+        self.configureSafariView = safariViewConfiguration
+        self.configureWebKit = nil
+        self.configureWebView = nil
     }
+
     #endif
 
-    /// Initializes a `WebView` with a URL, using `WKWebView` and optional configurations.
+    /// Initializes a `WebView` with a URL and optional WKWebView configurations.
     ///
     /// - Parameters:
-    ///   - url: The URL to load in the web view.
-    ///   - wkConfiguration: A closure to configure the `WKWebViewConfiguration`.
-    ///   - wkViewConfiguration: A closure to configure the `WKWebView`.
+    ///   - url: The URL to load in the WebKit view.
+    ///   - webKitConfiguration: An optional closure to configure the `WKWebViewConfiguration`.
+    ///   - webViewConfiguration: An optional closure to configure the `WKWebView`.
     public init(
         url: URL,
-        wkConfiguration: ((inout WKWebViewConfiguration) -> Void)? = nil,
-        wkViewConfiguration: ((WKWebView) -> Void)? = nil
+        webKitConfiguration: ((inout WKWebViewConfiguration) -> Void)? = nil,
+        webViewConfiguration: ((WKWebView) -> Void)? = nil
     ) {
         self.url = url
         self.htmlString = nil
         self.htmlBaseUrl = nil
-        self.type = .advanced
-
-        #if os(iOS) || os(visionOS) || os(watchOS) || targetEnvironment(macCatalyst)
-        self.sfConfigurationClosure = nil
-        self.sfViewConfiguration = nil
-        #endif
-
-        self.wkConfigurationClosure = wkConfiguration
-        self.wkViewConfiguration = wkViewConfiguration
+        self.webViewType = .webkit
+        self.configureSafari = nil
+        self.configureSafariView = nil
+        self.configureWebKit = webKitConfiguration
+        self.configureWebView = webViewConfiguration
     }
 
-    /// Initializes a `WebView` with a URL string, using `WKWebView` and optional configurations.
+    /// Initializes a `WebView` with a string URL and optional WKWebView configurations.
     ///
     /// - Parameters:
-    ///   - urlString: The URL string to load in the web view.
-    ///   - wkConfiguration: A closure to configure the `WKWebViewConfiguration`.
-    ///   - wkViewConfiguration: A closure to configure the `WKWebView`.
+    ///   - urlString: A string representing the URL to load in the WebKit view.
+    ///   - webKitConfiguration: An optional closure to configure the `WKWebViewConfiguration`.
+    ///   - webViewConfiguration: An optional closure to configure the `WKWebView`.
     public init(
         urlString: String,
-        wkConfiguration: ((inout WKWebViewConfiguration) -> Void)? = nil,
-        wkViewConfiguration: ((WKWebView) -> Void)? = nil
+        webKitConfiguration: ((inout WKWebViewConfiguration) -> Void)? = nil,
+        webViewConfiguration: ((WKWebView) -> Void)? = nil
     ) {
         self.url = URL(string: urlString)
         self.htmlString = nil
         self.htmlBaseUrl = nil
-        self.type = .advanced
-
-        #if os(iOS) || os(visionOS) || os(watchOS) || targetEnvironment(macCatalyst)
-        self.sfConfigurationClosure = nil
-        self.sfViewConfiguration = nil
-        #endif
-
-        self.wkConfigurationClosure = wkConfiguration
-        self.wkViewConfiguration = wkViewConfiguration
+        self.webViewType = .webkit
+        self.configureSafari = nil
+        self.configureSafariView = nil
+        self.configureWebKit = webKitConfiguration
+        self.configureWebView = webViewConfiguration
     }
 
-    /// Initializes a `WebView` with HTML content, using `WKWebView` and optional configurations.
+    /// Initializes a `WebView` with an HTML string and optional WKWebView configurations.
     ///
     /// - Parameters:
-    ///   - htmlString: The HTML string to load in the web view.
-    ///   - htmlBaseUrl: The base URL for resolving relative paths in the HTML string.
-    ///   - wkConfiguration: A closure to configure the `WKWebViewConfiguration`.
-    ///   - wkViewConfiguration: A closure to configure the `WKWebView`.
+    ///   - htmlString: The HTML content to load in the WebKit view.
+    ///   - htmlBaseUrl: The base URL for the HTML content.
+    ///   - webKitConfiguration: An optional closure to configure the `WKWebViewConfiguration`.
+    ///   - webViewConfiguration: An optional closure to configure the `WKWebView`.
     public init(
         htmlString: String,
         htmlBaseUrl: URL? = nil,
-        wkConfiguration: ((inout WKWebViewConfiguration) -> Void)? = nil,
-        wkViewConfiguration: ((WKWebView) -> Void)? = nil
+        webKitConfiguration: ((inout WKWebViewConfiguration) -> Void)? = nil,
+        webViewConfiguration: ((WKWebView) -> Void)? = nil
     ) {
         self.url = nil
         self.htmlString = htmlString
         self.htmlBaseUrl = htmlBaseUrl
-        self.type = .advanced
-
-        #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
-        self.sfConfigurationClosure = nil
-        self.sfViewConfiguration = nil
-        #endif
-
-        self.wkConfigurationClosure = wkConfiguration
-        self.wkViewConfiguration = wkViewConfiguration
+        self.webViewType = .webkit
+        self.configureSafari = nil
+        self.configureSafariView = nil
+        self.configureWebKit = webKitConfiguration
+        self.configureWebView = webViewConfiguration
     }
 }
 
-// MARK: - Body view
 extension WebView: View {
 
-    /// A view that presents a web view based on the type of `WebView`.
+    /// The body of the `WebView`, which renders the appropriate view based on the platform and
+    /// configuration.
     ///
-    /// This computed property returns a `Group` containing either:
-    /// - A `SafariWebView` if the `type` is `.simple`, and a `url` is provided.
-    /// - A `WebKitWebView` if the `type` is `.advanced`, with options to load either a URL or
-    /// HTML content.
-    ///
-    /// - Returns: A `View` that displays web content based on the `WebViewType` and provided
-    /// configurations.
+    /// - For iOS, visionOS, and Catalyst, this will render a `SafariWebView` if the `webViewType`
+    /// is `.safari`.
+    /// - On all platforms, it will render a `WebKitWebView` if the `webViewType` is `.webkit`.
+    @ViewBuilder
     public var body: some View {
-        Group {
-            switch type {
+        switch webViewType {
 
-                #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
-                case .simple:
-                    if let url = url {
-                        SafariWebView(
-                            url: url,
-                            configurationClosure: sfConfigurationClosure,
-                            viewConfiguration: sfViewConfiguration
-                        )
-                    }
-                #endif
+            #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
 
-                case .advanced:
-                    WebKitWebView(
+            case .safari:
+                if let url = url {
+                    SafariWebView(
                         url: url,
-                        htmlString: htmlString,
-                        htmlBaseUrl: htmlBaseUrl,
-                        configurationClosure: wkConfigurationClosure,
-                        viewConfiguration: wkViewConfiguration
+                        configureSafari: configureSafari,
+                        configureSafariView: configureSafariView
                     )
-            }
+                }
+
+            #endif
+
+            case .webkit:
+                WebKitWebView(
+                    url: url,
+                    htmlString: htmlString,
+                    htmlBaseUrl: htmlBaseUrl,
+                    configureWebKit: configureWebKit,
+                    configureWebView: configureWebView
+                )
         }
     }
 }

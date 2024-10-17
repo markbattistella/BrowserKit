@@ -8,18 +8,20 @@ import SwiftUI
 
 #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
 
-/// A type alias for the platform-specific view representable protocol in UIKit or Catalyst.
+/// A typealias for `UIViewRepresentable` on iOS, visionOS, and Catalyst platforms.
 ///
-/// This alias is used to conform to `UIViewRepresentable`, which allows integration of `UIView`
-/// objects with SwiftUI in iOS, visionOS, or Catalyst applications.
+/// This alias ensures that the same code can be used across multiple platforms that rely on
+/// `UIViewRepresentable` for integrating UIKit views within SwiftUI. On these platforms, this
+/// type represents a view that can wrap a `UIView` for use in a SwiftUI view hierarchy.
 internal typealias AgnosticViewRepresentable = UIViewRepresentable
 
 #elseif os(macOS)
 
-/// A type alias for the platform-specific view representable protocol in AppKit.
+/// A typealias for `NSViewRepresentable` on macOS.
 ///
-/// This alias is used to conform to `NSViewRepresentable`, which allows integration of `NSView`
-/// objects with SwiftUI in macOS applications.
+/// This alias is used on macOS to integrate AppKit views (`NSView`) within SwiftUI using the
+/// `NSViewRepresentable` protocol, allowing platform-agnostic code across macOS and other Apple
+/// platforms.
 internal typealias AgnosticViewRepresentable = NSViewRepresentable
 
 #endif
