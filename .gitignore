@@ -1,0 +1,16 @@
+*.moved-aside
+*.pbxuser
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcworkspace
+.swiftpm/
+.swiftpm/*
+.build/
+xcuserdata/
+Packages/
+Package.pins
+Package.resolved
+.env
+*.secrets
+.vscode
