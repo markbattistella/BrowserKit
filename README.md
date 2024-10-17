@@ -93,7 +93,7 @@ struct ContentView: View {
 You can customise the Safari view controller's configuration with the `safariConfiguration` closure:
 
 ```swift
-WebView(url: URL(string: "https://www.example.com")!) { sfConfiguration in
+WebView(url: URL(string: "https://markbattistella.com")!) { sfConfiguration in
     sfConfiguration.entersReaderIfAvailable = true
 }
 ```
@@ -104,7 +104,7 @@ You can also customise the `WKWebViewConfiguration` or the `WKWebView` itself:
 
 ```swift
 WebView(
-    url: URL(string: "https://www.example.com")!,
+    url: URL(string: "https://markbattistella.com")!,
     webKitConfiguration: { wkConfig in
         wkConfig.allowsInlineMediaPlayback = true
     },
