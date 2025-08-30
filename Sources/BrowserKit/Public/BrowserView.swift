@@ -10,10 +10,6 @@ import SwiftUI
 import SafariServices
 import WebKit
 
-/// Apple v26 released `WebView` and now causes namespace clashing.
-@available(iOS, introduced: 13.0, obsoleted: 26.0, deprecated: 18.6, message: "Use `BrowserView` instead of `WebView`.")
-public typealias WebView = BrowserView
-
 /// A SwiftUI view that displays web content using either `SFSafariViewController` or `WKWebView`,
 /// depending on the platform and configuration.
 ///
