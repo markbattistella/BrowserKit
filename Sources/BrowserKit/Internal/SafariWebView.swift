@@ -22,6 +22,10 @@ import SafariServices
 ///   `SFSafariViewController.Configuration`.
 ///   - configureSafariView: A closure for configuring the `SFSafariViewController` after it has
 ///   been initialized.
+@available(iOS, introduced: 13.0, obsoleted: 26.0, message: "BrowserKit is not supported on iOS 26 and later.")
+@available(macOS, introduced: 10.15, obsoleted: 26.0, message: "BrowserKit is not supported on macOS 26 and later.")
+@available(macCatalyst, introduced: 13.0, obsoleted: 26.0, message: "BrowserKit is not supported on Mac Catalyst 26 and later.")
+@available(visionOS, introduced: 1.0, obsoleted: 26.0, message: "BrowserKit is not supported on visionOS 26 and later.")
 internal struct SafariWebView: UIViewControllerRepresentable {
     
     /// The URL to load in the Safari web view.

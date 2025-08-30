@@ -10,6 +10,10 @@ import SwiftUI
 import SafariServices
 import WebKit
 
+/// Apple v26 released `WebView` and now causes namespace clashing.
+@available(iOS, introduced: 13.0, obsoleted: 26.0, deprecated: 18.6, message: "Use `BrowserView` instead of `WebView`.")
+public typealias WebView = BrowserView
+
 /// A SwiftUI view that displays web content using either `SFSafariViewController` or `WKWebView`,
 /// depending on the platform and configuration.
 ///
@@ -18,7 +22,11 @@ import WebKit
 /// - On all platforms, it can also present a `WKWebView` for more customizable web viewing.
 ///
 /// You can configure the web view to load either a URL or an HTML string.
-public struct WebView {
+@available(iOS, introduced: 13.0, obsoleted: 26.0, message: "BrowserKit is not supported on iOS 26 and later.")
+@available(macOS, introduced: 10.15, obsoleted: 26.0, message: "BrowserKit is not supported on macOS 26 and later.")
+@available(macCatalyst, introduced: 13.0, obsoleted: 26.0, message: "BrowserKit is not supported on Mac Catalyst 26 and later.")
+@available(visionOS, introduced: 1.0, obsoleted: 26.0, message: "BrowserKit is not supported on visionOS 26 and later.")
+public struct BrowserView {
 
     /// The URL to be loaded in the web view.
     private let url: URL?
@@ -44,7 +52,7 @@ public struct WebView {
     /// The base URL to be used for loading relative resources in the HTML string.
     private let htmlBaseUrl: URL?
 
-    /// Initializes a `WebView` with a URL to be loaded.
+    /// Initializes a `BrowserView` with a URL to be loaded.
     ///
     /// - Parameter url: The URL to load in the web view.
     public init(url: URL) {
@@ -61,7 +69,7 @@ public struct WebView {
 
     #if os(iOS) || os(visionOS) || targetEnvironment(macCatalyst)
 
-    /// Initializes a `WebView` with a URL and optional Safari view configurations.
+    /// Initializes a `BrowserView` with a URL and optional Safari view configurations.
     ///
     /// - Parameters:
     ///   - url: The URL to load in the Safari view.
@@ -84,7 +92,7 @@ public struct WebView {
 
     #endif
 
-    /// Initializes a `WebView` with a URL and optional WKWebView configurations.
+    /// Initializes a `BrowserView` with a URL and optional WKWebView configurations.
     ///
     /// - Parameters:
     ///   - url: The URL to load in the WebKit view.
@@ -105,7 +113,7 @@ public struct WebView {
         self.configureWebView = webViewConfiguration
     }
 
-    /// Initializes a `WebView` with a string URL and optional WKWebView configurations.
+    /// Initializes a `BrowserView` with a string URL and optional WKWebView configurations.
     ///
     /// - Parameters:
     ///   - urlString: A string representing the URL to load in the WebKit view.
@@ -126,7 +134,7 @@ public struct WebView {
         self.configureWebView = webViewConfiguration
     }
 
-    /// Initializes a `WebView` with an HTML string and optional WKWebView configurations.
+    /// Initializes a `BrowserView` with an HTML string and optional WKWebView configurations.
     ///
     /// - Parameters:
     ///   - htmlString: The HTML content to load in the WebKit view.
@@ -150,9 +158,13 @@ public struct WebView {
     }
 }
 
-extension WebView: View {
+@available(iOS, introduced: 13.0, obsoleted: 26.0, message: "BrowserKit is not supported on iOS 26 and later.")
+@available(macOS, introduced: 10.15, obsoleted: 26.0, message: "BrowserKit is not supported on macOS 26 and later.")
+@available(macCatalyst, introduced: 13.0, obsoleted: 26.0, message: "BrowserKit is not supported on Mac Catalyst 26 and later.")
+@available(visionOS, introduced: 1.0, obsoleted: 26.0, message: "BrowserKit is not supported on visionOS 26 and later.")
+extension BrowserView: View {
 
-    /// The body of the `WebView`, which renders the appropriate view based on the platform and
+    /// The body of the `BrowserView`, which renders the appropriate view based on the platform and
     /// configuration.
     ///
     /// - For iOS, visionOS, and Catalyst, this will render a `SafariWebView` if the `webViewType`

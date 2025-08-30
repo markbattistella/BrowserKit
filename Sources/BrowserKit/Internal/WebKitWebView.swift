@@ -21,6 +21,10 @@ import WebKit
 ///   - configureWebKit: A closure to configure the `WKWebViewConfiguration` before the web view
 ///   is created.
 ///   - configureWebView: A closure to configure the `WKWebView` after creation.
+@available(iOS, introduced: 13.0, obsoleted: 26.0, message: "BrowserKit is not supported on iOS 26 and later.")
+@available(macOS, introduced: 10.15, obsoleted: 26.0, message: "BrowserKit is not supported on macOS 26 and later.")
+@available(macCatalyst, introduced: 13.0, obsoleted: 26.0, message: "BrowserKit is not supported on Mac Catalyst 26 and later.")
+@available(visionOS, introduced: 1.0, obsoleted: 26.0, message: "BrowserKit is not supported on visionOS 26 and later.")
 internal struct WebKitWebView: AgnosticViewRepresentable {
 
     /// The URL to load in the web view, if available. If `nil`, the `htmlString` will be
@@ -42,7 +46,7 @@ internal struct WebKitWebView: AgnosticViewRepresentable {
     /// additional setup.
     internal let configureWebView: ((WKWebView) -> Void)?
 
-#if os(macOS)
+    #if os(macOS)
 
     /// Creates the WebKit-based view for macOS (`NSView`).
     ///
@@ -62,7 +66,7 @@ internal struct WebKitWebView: AgnosticViewRepresentable {
     ///   - context: The context in which the update occurs.
     internal func updateNSView(_ nsView: WKWebView, context: Context) {}
 
-#else
+    #else
 
     /// Creates the WebKit-based view for iOS, visionOS, or Catalyst (`UIView`).
     ///
@@ -83,7 +87,7 @@ internal struct WebKitWebView: AgnosticViewRepresentable {
     ///   - context: The context in which the update occurs.
     internal func updateUIView(_ uiView: WKWebView, context: Context) {}
 
-#endif
+    #endif
 
     /// Creates a `WKWebView` instance, applies configurations, and loads content from a URL or
     /// HTML string.

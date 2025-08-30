@@ -13,6 +13,26 @@
 
 `BrowserKit` is a Swift package that provides a simple and flexible way to integrate web views into your iOS, macOS, and visionOS applications. It supports both `SFSafariViewController` for seamless web browsing on iOS and `WKWebView` for custom web content handling across platforms.
 
+---
+
+## Important Notice: `WebView` Renamed to `BrowserView` (iOS 26 Compatibility)
+
+With iOS 26, Apple introduced a native type named `WebView`, which conflicts with `BrowserKit`'s `WebView`. To avoid namespace collisions:
+
+- The `WebView` type has been **renamed to `BrowserView`**
+- `WebView` is now **deprecated** and will be removed in iOS 26+
+- You should **update all usage of `WebView` → `BrowserView`**
+
+### Migration Example
+
+```swift
+// Deprecated
+WebView(url: URL(string: "https://example.com")!)
+
+// ✅ Update to:
+BrowserView(url: URL(string: "https://example.com")!)
+```
+
 ## Features
 
 - **Cross-Platform Support:** Works with iOS, macOS, visionOS, and Catalyst.
@@ -49,7 +69,7 @@ import BrowserKit
 
 struct ContentView: View {
     var body: some View {
-        WebView(url: URL(string: "https://markbattistella.com")!)
+        BrowserView(url: URL(string: "https://markbattistella.com")!)
     }
 }
 ```
@@ -63,7 +83,7 @@ import BrowserKit
 
 struct ContentView: View {
     var body: some View {
-        WebView(url: URL(string: "https://markbattistella.com")!, webKitConfiguration: { config in
+        BrowserView(url: URL(string: "https://markbattistella.com")!, webKitConfiguration: { config in
             config.preferences.javaScriptEnabled = true
         }, webViewConfiguration: { webView in
             webView.navigationDelegate = self // Set your custom navigation delegate
@@ -81,7 +101,7 @@ import BrowserKit
 
 struct ContentView: View {
     var body: some View {
-        WebView(htmlString: "<html><body><h1>Hello, World!</h1></body></html>")
+        BrowserView(htmlString: "<html><body><h1>Hello, World!</h1></body></html>")
     }
 }
 ```
@@ -93,7 +113,7 @@ struct ContentView: View {
 You can customise the Safari view controller's configuration with the `safariConfiguration` closure:
 
 ```swift
-WebView(url: URL(string: "https://markbattistella.com")!) { sfConfiguration in
+BrowserView(url: URL(string: "https://markbattistella.com")!) { sfConfiguration in
     sfConfiguration.entersReaderIfAvailable = true
 }
 ```
@@ -103,7 +123,7 @@ WebView(url: URL(string: "https://markbattistella.com")!) { sfConfiguration in
 You can also customise the `WKWebViewConfiguration` or the `WKWebView` itself:
 
 ```swift
-WebView(
+BrowserView(
     url: URL(string: "https://markbattistella.com")!,
     webKitConfiguration: { wkConfig in
         wkConfig.allowsInlineMediaPlayback = true
