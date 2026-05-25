@@ -11,31 +11,30 @@
 
 </div>
 
-`BrowserKit` is a Swift package that provides a simple and flexible way to integrate web views into your iOS, macOS, and visionOS applications. It supports both `SFSafariViewController` for seamless web browsing on iOS and `WKWebView` for custom web content handling across platforms.
+`BrowserKit` is a Swift package that provides a simple and flexible way to integrate web views into your iOS, macOS, Mac Catalyst, and visionOS applications. It supports both `SFSafariViewController` for seamless browsing on iOS, Mac Catalyst, and visionOS, and `WKWebView` for custom web content across all supported platforms.
 
 ---
 
-## Important Notice: `WebView` Renamed to `BrowserView` (iOS 26 Compatibility)
+## Important Notice: `WebView` Renamed to `BrowserView`
 
-With iOS 26, Apple introduced a native type named `WebView`, which conflicts with `BrowserKit`'s `WebView`. To avoid namespace collisions:
+With OS 26, Apple introduced native SwiftUI web view types that can collide with packages that also expose a `WebView` symbol. To avoid namespace collisions:
 
-- The `WebView` type has been **renamed to `BrowserView`**
-- `WebView` is now **deprecated** and will be removed in iOS 26+
+- The BrowserKit view type is now named **`BrowserView`**
 - You should **update all usage of `WebView` → `BrowserView`**
 
 ### Migration Example
 
 ```swift
-// Deprecated
+// Old
 WebView(url: URL(string: "https://example.com")!)
 
-// ✅ Update to:
+// New
 BrowserView(url: URL(string: "https://example.com")!)
 ```
 
 ## Features
 
-- **Cross-Platform Support:** Works with iOS, macOS, visionOS, and Catalyst.
+- **Cross-Platform Support:** Works with iOS, macOS, Mac Catalyst, and visionOS.
 - **Safari and WebKit Integration:** Choose between `SFSafariViewController` for a native browsing experience or `WKWebView` for custom web content.
 - **Customisable Configurations:** Easily configure both Safari and WebKit views with flexible closures.
 - **HTML String Loading:** Load HTML content directly into a WKWebView with optional base URLs.
@@ -49,23 +48,40 @@ To add `BrowserKit` to your project, use the Swift Package Manager.
 1. Open your project in Xcode.
 1. Go to `File > Add Packages`.
 1. In the search bar, enter the URL of the `BrowserKit` repository:
-  
+
     ```url
     https://github.com/markbattistella/BrowserKit
     ```
 
 1. Click `Add Package`.
 
+Or add it to your package manifest:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/markbattistella/BrowserKit", from: "26.0.0")
+]
+```
+
+## Requirements
+
+- Swift 6.0+
+- iOS 13+
+- macOS 10.15+
+- Mac Catalyst 13.1+
+- visionOS 1+
+
 ## Usage
 
 ### Basic Example
 
-#### Loading a URL with Safari
+#### Loading a URL
 
-You can load a URL using `SFSafariViewController` on iOS, visionOS, and Catalyst platforms:
+You can load a URL using the platform default. On iOS, Mac Catalyst, and visionOS this uses `SFSafariViewController`; on macOS this uses `WKWebView`.
 
 ```swift
 import BrowserKit
+import SwiftUI
 
 struct ContentView: View {
     var body: some View {
@@ -80,14 +96,19 @@ For custom web content handling, you can use `WKWebView` on any platform:
 
 ```swift
 import BrowserKit
+import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        BrowserView(url: URL(string: "https://markbattistella.com")!, webKitConfiguration: { config in
-            config.preferences.javaScriptEnabled = true
-        }, webViewConfiguration: { webView in
-            webView.navigationDelegate = self // Set your custom navigation delegate
-        })
+        BrowserView(
+            url: URL(string: "https://markbattistella.com")!,
+            webKitConfiguration: { configuration in
+                configuration.websiteDataStore = .default()
+            },
+            webViewConfiguration: { webView in
+                webView.customUserAgent = "MyApp/1.0"
+            }
+        )
     }
 }
 ```
@@ -98,6 +119,7 @@ You can also load raw HTML content into a `WKWebView`:
 
 ```swift
 import BrowserKit
+import SwiftUI
 
 struct ContentView: View {
     var body: some View {
@@ -110,7 +132,7 @@ struct ContentView: View {
 
 ### Safari Configuration
 
-You can customise the Safari view controller's configuration with the `safariConfiguration` closure:
+You can customise the Safari view controller's configuration with the `safariConfiguration` closure on iOS, Mac Catalyst, and visionOS:
 
 ```swift
 BrowserView(url: URL(string: "https://markbattistella.com")!) { sfConfiguration in
@@ -125,11 +147,11 @@ You can also customise the `WKWebViewConfiguration` or the `WKWebView` itself:
 ```swift
 BrowserView(
     url: URL(string: "https://markbattistella.com")!,
-    webKitConfiguration: { wkConfig in
-        wkConfig.allowsInlineMediaPlayback = true
+    webKitConfiguration: { configuration in
+        configuration.websiteDataStore = .default()
     },
     webViewConfiguration: { webView in
-        webView.customUserAgent = "MyCustomUserAgent"
+        webView.customUserAgent = "MyApp/1.0"
     }
 )
 ```
